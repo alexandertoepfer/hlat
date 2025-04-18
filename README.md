@@ -21,7 +21,7 @@ paths to Qt widget metadata is required.
 #include <iostream>
 
 int main() {
-    auto pyDecl = hlat::QtPythonDeclarationsFrom<
+    auto pydecl = hlat::QtPythonDeclarationsFrom<
         std::vector<hlat::Token>(*)(std::string_view),
         std::vector<hlat::XLocator>(*)(const std::vector<hlat::Token>&),
         std::vector<hlat::QtLocator>(*)(const std::vector<hlat::XLocator>&),
@@ -62,7 +62,7 @@ int main() {
 
     for (auto const& xpath : xpaths) {
         std::cout << "Processing XPath : " << xpath << "\n";
-        std::cout << pyDecl(xpath) << "\n";
+        std::cout << pydecl(xpath) << "\n";
     }
     return 0;
 }
