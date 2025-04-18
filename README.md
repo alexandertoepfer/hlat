@@ -1,4 +1,4 @@
-# 🌐 Heuristic Layer Abstraction Transformer (HLAT)
+# Heuristic Layer Abstraction Transformer (HLAT)
 
 *A tiny, header‑only C++20 engine that converts XPath‑style selectors into **canonical Qt locator descriptors**.*
 
