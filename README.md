@@ -58,16 +58,48 @@ For GCC/Clang on Linux or macOS, just install `nlohmann-json` from your package 
 #include "hlat.hpp"
 
 int main() {
-    auto synth = hlat::QtLocatorSynthesizer<
-      std::vector<hlat::LexicalUnit>(*)(std::string_view),
-      HeuristicQtClassifier
-    >{ hlat::parsePath }; //< Or custom parser
+    auto pyDecl = hlat::QtPythonDeclarationsFrom<
+    std::vector<hlat::Token>(std::string_view),
+    std::vector<hlat::XLocator>(const std::vector<hlat::Token>&),
+    std::vector<hlat::QtLocator>(const std::vector<hlat::XLocator>&),
+    std::string(std::vector<hlat::QtLocator>&),
+    hlat::HeuristicQtClassifier
+    >{
+        // tokenize:
+        [](auto xpath) { return hlat::XPathLexer(xpath).tokenize(); },
+        // parse:
+        [](auto const& toks) { return hlat::XPathParser(toks).parse(); },
+        // convert:
+        [](auto const& xlocs) { return hlat::XPathConverter(xlocs).convert(); },
+        // finalize:
+        [](auto& qtlocs) -> std::string {
+            return std::accumulate(
+                qtlocs.begin(), qtlocs.end(),
+                std::string{},
+                [](std::string acc, auto& qt) {
+                    return std::move(acc) + qt.finalize();
+                }
+            );
+        }
+    };
 
-    const std::string xpath =
-        "/window[@title='DemoApp']/container[@name='main']/button[2]";
-
-    for (const auto& rec : synth(xpath)) {
-        std::cout << rec.uid << " = " << rec.meta.dump(4) << "\n\n";
+    std::vector<std::string> xpaths = {
+        "//div[@class='header']/span[1]/text()",
+        "//*[@name='content']//button[2]",
+        "//form/child::container[1]/following-sibling::button",
+        "//button[@name='submit' and @enabled='true']",
+        "//ns:form//*[@type='input']",
+        "//bookstore/book[price>35]/title",
+        "//ul/li[position()<3]",
+        "//section[@id='intro']/descendant::p",
+        "//*[local-name()='svg']/*[name()='path']",
+        "/root/*[2]//child::leaf",
+        "//parent::node()/preceding-sibling::sibling"
+    };
+      
+    for (auto const& xpath : xpaths) {
+        std::cout << "Processing XPath : " << xpath << "\n";
+        std::cout << pyDecl(xpath) << "\n";
     }
 }
 ```
@@ -75,22 +107,34 @@ int main() {
 Output (example):
 
 ```text
-window_ModuleQT = {
-    "archetype": "ModuleQT",
-    "windowTitle": "DemoApp",
+Processing XPath : //div[@class='header']/span[1]/text()
+div_QWidget_class_header = {
+    "archetype": "QWidget",
+    "class": "header",
     "visible": 1
 }
-window_main_ScrollViewQT = {
-    "archetype": "ScrollViewQT",
-    "container": "window_ModuleQT",
-    "name": "main",
+div_QWidget_class_header_span_QWidget = {
+    "archetype": "QWidget",
+    "visible": 1,
+    "container": div_QWidget_class_header
+}
+div_QWidget_class_header_span_QWidget_text_TextFieldQT = {
+    "archetype": "TextFieldQT",
+    "visible": 1,
+    "container": div_QWidget_class_header_span_QWidget
+}
+
+Processing XPath : //*[@name='content']//button[2]
+any_QWidget_name_content = {
+    "archetype": "QWidget",
+    "name": "content",
     "visible": 1
 }
-window_main_button_2_PushButtonQT = {
+any_QWidget_name_content_button_PushButtonQT = {
     "archetype": "PushButtonQT",
-    "container": "window_main_ScrollViewQT",
     "occurrence": 2,
-    "visible": 1
+    "visible": 1,
+    "container": any_QWidget_name_content
 }
 ```
 
