@@ -60,12 +60,12 @@ div_QWidget_class_header = {
 div_QWidget_class_header_span_QWidget = {
     "archetype": "QWidget",
     "visible": 1,
-    "container": "div_QWidget_class_header"
+    "container": div_QWidget_class_header
 };
 div_QWidget_class_header_span_QWidget_text_TextFieldQT = {
     "archetype": "TextFieldQT",
     "visible": 1,
-    "container": "div_QWidget_class_header_span_QWidget"
+    "container": div_QWidget_class_header_span_QWidget
 };
 
 any_QWidget_name_content = {
@@ -77,7 +77,7 @@ any_QWidget_name_content_button_PushButtonQT = {
     "archetype": "PushButtonQT",
     "occurrence": 2,
     "visible": 1,
-    "container": "any_QWidget_name_content"
+    "container": any_QWidget_name_content
 };
 ```
 
