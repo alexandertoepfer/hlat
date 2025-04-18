@@ -17,6 +17,7 @@ paths to Qt widget metadata is required.
 
 ```cpp
 #include "hlat.hpp"
+
 #include <numeric>
 #include <iostream>
 
