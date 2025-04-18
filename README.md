@@ -23,29 +23,25 @@ paths to Qt widget metadata is required.
 
 int main() {
     auto pydecl = hlat::QtPythonDeclarationsFrom<
-        std::vector<hlat::Token>(*)(std::string_view),
-        std::vector<hlat::XLocator>(*)(const std::vector<hlat::Token>&),
-        std::vector<hlat::QtLocator>(*)(const std::vector<hlat::XLocator>&),
-        std::string(*)(std::vector<hlat::QtLocator>&),
+        hlat::XPathLexerFn,
+        hlat::XPathParserFn,
+        hlat::QtLocatorBuilderFn,
+        hlat::QtLocatorEmitterFn,
         hlat::HeuristicQtClassifier
-        >{
-            // tokenize:
-            [](auto xpath) { return hlat::XPathLexer(xpath).tokenize(); },
-            // parse:
-            [](auto const& toks) { return hlat::XPathParser(toks).parse(); },
-            // convert:
-            [](auto const& xlocs) { return hlat::XPathConverter(xlocs).convert(); },
-            // finalize:
-            [](auto& qtlocs) -> std::string {
-                return std::accumulate(
-                    qtlocs.begin(), qtlocs.end(),
-                    std::string{},
-                    [](std::string acc, auto& qt) {
-                        return std::move(acc) + qt.finalize();
-                    }
-                );
-            }
-        };
+    >{
+        [](auto xpath) { return hlat::XPathLexer(xpath).tokenize(); },
+        [](auto const& toks) { return hlat::XPathParser(toks).parse(); },
+        [](auto const& xlocs) { return hlat::XPathConverter(xlocs).convert(); },
+        [](auto& qtlocs) -> std::string {
+            return std::accumulate(
+                qtlocs.begin(), qtlocs.end(),
+                std::string{},
+                [](std::string acc, auto& qt) {
+                    return std::move(acc) + qt.finalize();
+                }
+            );
+        }
+    };
 
     std::vector<std::string> xpaths = {
         "//div[@class='header']/span[1]/text()",
@@ -63,7 +59,7 @@ int main() {
 
     for (auto const& xpath : xpaths) {
         std::cout << "Processing XPath : " << xpath << "\n";
-        std::cout << pydecl(xpath) << "\n";
+        std::cout << (pydecl | xpath) << "\n";
     }
     return 0;
 }
@@ -75,29 +71,29 @@ div_QWidget_class_header = {
     "archetype": "QWidget",
     "class": "header",
     "visible": 1
-};
+}
 div_QWidget_class_header_span_QWidget = {
     "archetype": "QWidget",
     "visible": 1,
     "container": div_QWidget_class_header
-};
+}
 div_QWidget_class_header_span_QWidget_text_TextFieldQT = {
     "archetype": "TextFieldQT",
     "visible": 1,
     "container": div_QWidget_class_header_span_QWidget
-};
+}
 
 any_QWidget_name_content = {
     "archetype": "QWidget",
     "name": "content",
     "visible": 1
-};
+}
 any_QWidget_name_content_button_PushButtonQT = {
     "archetype": "PushButtonQT",
     "occurrence": 2,
     "visible": 1,
     "container": any_QWidget_name_content
-};
+}
 ```
 
 ## 📚 Features
