@@ -10,7 +10,7 @@ paths to Qt widget metadata is required.
 - **Header‑only** – drop in `hlat.hpp`, depend only on [nlohmann/json](https://github.com/nlohmann/json).  
 - **Modern C++20** – uses `<ranges>`, `<regex>`, `<string_view>`, and lambda‑injection.  
 - **Heuristic classification** – infers Qt widget archetypes (e.g. `PushButtonQT`, `TextFieldQT`) directly from tag names.  
-- **Rich metadata** – generates stable UID strings plus a JavaScript/Python-safe JSON blobs (`archetype`, attributes, occurrence, visibility, container).  
+- **Rich metadata** – generates stable UID strings plus a JavaScript/Python-safe JSON blobs (`archetype`, `attributes`, `occurrence`, `visibility`, `container`).  
 - **MIT‑licensed** – lightweight, production‑ready, and easy to integrate.
 
 ## 🚀 Quick Start (30 lines)
