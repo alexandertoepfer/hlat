@@ -21,19 +21,19 @@ paths to Qt widget metadata is required.
 #include <iostream>
 
 int main() {
-    auto synth = hlat::QtPythonDeclarationsFrom<
+    auto pydecl = hlat::QtPythonDeclarationsFrom<
         std::vector<hlat::Token>(std::string_view),
         std::vector<hlat::XLocator>(const std::vector<hlat::Token>&),
         std::vector<hlat::QtLocator>(const std::vector<hlat::XLocator>&),
         std::string(const std::vector<hlat::QtLocator>&),
         hlat::HeuristicQtClassifier
     >{
-        [](auto xp){ return hlat::XPathLexer(xp).tokenize(); },
-        [](auto const& t){ return hlat::XPathParser(t).parse(); },
-        [](auto const& s){ return hlat::XPathConverter<>{}(s).convert(); },
-        [](auto const& locs){
+        [](auto xpath){ return hlat::XPathLexer(xpath).tokenize(); },
+        [](auto const& toks){ return hlat::XPathParser(toks).parse(); },
+        [](auto const& xlocs){ return hlat::XPathConverter(xlocs).convert(); },
+        [](auto const& qtlocs){
             return std::accumulate(
-                locs.begin(), locs.end(), std::string{},
+                qtlocs.begin(), qtlocs.end(), std::string{},
                 [](std::string acc, auto const& qt){
                     return std::move(acc) + qt.finalize();
                 }
@@ -41,11 +41,11 @@ int main() {
         }
     };
 
-    for (std::string const& xp : {
+    for (std::string const& xpath : {
         "//div[@class='header']/span[1]/text()",
         "//*[@name='content']//button[2]"
     }) {
-        std::cout << synth(xp) << '\n';
+        std::cout << pydecl(xpath) << '\n';
     }
 }
 ```
