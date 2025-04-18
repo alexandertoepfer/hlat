@@ -31,6 +31,7 @@
 #include <variant>
 #include <stack>
 #include <iostream>
+#include <numeric>
 
 #include <nlohmann/json.hpp>
 
@@ -137,13 +138,13 @@ namespace hlat {
         std::string operator()(std::string_view tag_sv) const {
             std::string tag(tag_sv);
             util::toLowerInPlace(tag);
-            
+
             // Exact matches
             if (tag == "button")      return "PushButtonQT";
             if (tag == "container")   return "ScrollViewQT";
             if (tag == "form")        return "ModuleQT";
             if (tag == "textfield")   return "TextFieldQT";
-            
+
             // Suffix-based matches
             if (util::endsWith(tag, "button"))     return "PushButtonQT";
             if (util::endsWith(tag, "checkbox"))   return "CheckBoxQT";
@@ -153,7 +154,7 @@ namespace hlat {
             if (util::endsWith(tag, "label"))      return "LabelQT";
             if (util::endsWith(tag, "view"))       return "ScrollViewQT";
             if (util::endsWith(tag, "field"))      return "TextFieldQT";
-            
+
             // Substring-based matches
             if (util::contains(tag, "button"))     return "PushButtonQT";
             if (util::contains(tag, "field"))      return "TextFieldQT";
@@ -161,7 +162,7 @@ namespace hlat {
             if (util::contains(tag, "container"))  return "ScrollViewQT";
             if (util::contains(tag, "panel"))      return "ScrollViewQT";
             if (util::contains(tag, "form"))       return "ModuleQT";
-            
+
             return "QWidget"; // Default fallback
         }
     };
@@ -180,7 +181,7 @@ namespace hlat {
             std::vector<Token> tokens;
             while (pos_ < input_.length()) {
                 if (std::isspace(input_[pos_])) { ++pos_; continue; }
-                
+
                 char c = input_[pos_];
                 switch (c) {
                 case '/':
@@ -189,12 +190,12 @@ namespace hlat {
                         tokens.back().value = "//"; ++pos_;
                     }
                     continue;
-                    
+
                 case '@': tokens.push_back({ TokenType::Attribute, "@", pos_++ }); continue;
                 case '[': tokens.push_back({ TokenType::Predicate, "[", pos_++ }); continue;
                 case ']': tokens.push_back({ TokenType::Predicate, "]", pos_++ }); continue;
                 case '*': tokens.push_back({ TokenType::Wildcard, "*", pos_++ }); continue;
-                
+
                 case '"': case '\'':
                 {
                     char q = c; ++pos_;
@@ -211,7 +212,7 @@ namespace hlat {
                     ++pos_;
                     continue;
                 }
-                
+
                 case '=': case '!': case '>': case '<':
                 {
                     std::string op(1, c); ++pos_;
@@ -221,11 +222,11 @@ namespace hlat {
                     tokens.push_back({ TokenType::Operator, op, pos_ - op.length() });
                     continue;
                 }
-                
+
                 default:
                     break;
                 }
-                
+
                 // Check for axis specifier
                 if (pos_ + 2 < input_.length() &&
                     input_[pos_ + 1] == ':' && input_[pos_ + 2] == ':')
@@ -248,7 +249,7 @@ namespace hlat {
                     }
                     pos_ = start;
                 }
-                
+
                 // Generic identifier (tag name, etc.)
                 size_t start = pos_;
                 while (pos_ < input_.length() &&
@@ -261,7 +262,7 @@ namespace hlat {
                     std::string(input_.substr(start, pos_ - start)),
                     start });
             }
-            
+
             tokens.push_back({ TokenType::End, "", pos_ });
             return tokens;
         }
@@ -303,7 +304,7 @@ namespace hlat {
         XLocator parseStep(bool is_abs) {
             XLocator step; step.is_absolute = is_abs;
             step.axis = match(TokenType::Axis) ? previous().value : "child";
-            
+
             if (match(TokenType::Wildcard)) step.tag = "*";
             else if (match(TokenType::Tag)) step.tag = previous().value;
             else throw std::runtime_error("Expected tag or '*' at pos "
@@ -315,10 +316,10 @@ namespace hlat {
                     throw std::runtime_error("Expected closing ']' at pos "
                         + std::to_string(current().position));
             }
-            
+
             if (match(TokenType::Namespace))
                 step.tag = previous().value + ":" + step.tag;
-                
+
             return step;
         }
 
@@ -435,7 +436,7 @@ namespace hlat {
             std::vector<QtLocator> out;
             out.reserve(steps_.size());
             std::string parent;
-            
+
             for (auto const& step : steps_) {
                 std::string arch = classifier_(step.tag);
                 std::string uid = generateUid(parent, step, arch);
@@ -477,7 +478,7 @@ namespace hlat {
             std::string uid = parent.empty()
                 ? token + "_" + arch
                 : parent + "_" + token + "_" + arch;
-                
+
             if (step.predicate) {
                 for (auto const& cond : step.predicate->conditions) {
                     if (std::holds_alternative<AttributePredicate>(cond)) {
@@ -492,6 +493,14 @@ namespace hlat {
         const std::vector<XLocator>& steps_;
         Classifier classifier_{};
     };
+
+    // -----------------------------------------------------------------------------
+    // Pipeline Function Types
+    // -----------------------------------------------------------------------------
+    using XPathLexerFn = std::vector<Token>(*)(std::string_view);
+    using XPathParserFn = std::vector<XLocator>(*)(const std::vector<Token>&);
+    using QtLocatorBuilderFn = std::vector<QtLocator>(*)(const std::vector<XLocator>&);
+    using QtLocatorEmitterFn = std::string(*)(std::vector<QtLocator>&);
 
     // -----------------------------------------------------------------------------
     // Pipeline Components
@@ -536,5 +545,13 @@ namespace hlat {
             return declare_(_cache);
         }
     };
+
+    template<class TL, class TP, class TC, class TD, class CL>
+    auto operator|(const hlat::QtPythonDeclarationsFrom<TL, TP, TC, TD, CL>& pipe,
+        std::string_view xpath)
+        -> decltype(pipe(xpath))
+    {
+        return pipe(xpath);        // forward to operator()
+    }
 
 } // namespace hlat
