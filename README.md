@@ -93,14 +93,6 @@ window_main_button_2_PushButtonQT = {
 
 ---
 
-## Contributing
-
-1. Keep code and comments strictly ASCII.
-2. Run `clang-format` using the provided style.
-3. Add unit tests for new functionality.
-
----
-
 ## License
 
 HLAT is released under the MIT License – see the [LICENSE](LICENSE) file.
