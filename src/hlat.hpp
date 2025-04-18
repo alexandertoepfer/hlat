@@ -160,8 +160,6 @@ namespace hlat {
         }
     };
 
-} // namespace hlat
-
 // -----------------------------------------------------------------------------
 // In-line path parser
 // -----------------------------------------------------------------------------
@@ -205,15 +203,4 @@ inline constexpr auto parsePath = [](std::string_view path_sv) -> std::vector<hl
     return units;
 };
 
-int main() {
-
-    auto synthesizer = hlat::QtLocatorSynthesizer<std::vector<hlat::LexicalUnit>(*)(std::string_view)>{ parsePath };
-
-    const std::string xpath = "";
-
-    for (const auto& rec : synthesizer(xpath)) {
-        std::cout << rec.uid << " = " << rec.meta.dump(4) << "\n\n";
-    }
-
-    return 0;
-}
+} // namespace hlat
