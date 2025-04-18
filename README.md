@@ -21,32 +21,50 @@ paths to Qt widget metadata is required.
 #include <iostream>
 
 int main() {
-    auto pydecl = hlat::QtPythonDeclarationsFrom<
-        std::vector<hlat::Token>(std::string_view),
-        std::vector<hlat::XLocator>(const std::vector<hlat::Token>&),
-        std::vector<hlat::QtLocator>(const std::vector<hlat::XLocator>&),
-        std::string(const std::vector<hlat::QtLocator>&),
+    auto pyDecl = hlat::QtPythonDeclarationsFrom<
+        std::vector<hlat::Token>(*)(std::string_view),
+        std::vector<hlat::XLocator>(*)(const std::vector<hlat::Token>&),
+        std::vector<hlat::QtLocator>(*)(const std::vector<hlat::XLocator>&),
+        std::string(*)(std::vector<hlat::QtLocator>&),
         hlat::HeuristicQtClassifier
-    >{
-        [](auto xpath){ return hlat::XPathLexer(xpath).tokenize(); },
-        [](auto const& toks){ return hlat::XPathParser(toks).parse(); },
-        [](auto const& xlocs){ return hlat::XPathConverter(xlocs).convert(); },
-        [](auto const& qtlocs){
-            return std::accumulate(
-                qtlocs.begin(), qtlocs.end(), std::string{},
-                [](std::string acc, auto const& qt){
-                    return std::move(acc) + qt.finalize();
-                }
-            );
-        }
+        >{
+            // tokenize:
+            [](auto xpath) { return hlat::XPathLexer(xpath).tokenize(); },
+            // parse:
+            [](auto const& toks) { return hlat::XPathParser(toks).parse(); },
+            // convert:
+            [](auto const& xlocs) { return hlat::XPathConverter(xlocs).convert(); },
+            // finalize:
+            [](auto& qtlocs) -> std::string {
+                return std::accumulate(
+                    qtlocs.begin(), qtlocs.end(),
+                    std::string{},
+                    [](std::string acc, auto& qt) {
+                        return std::move(acc) + qt.finalize();
+                    }
+                );
+            }
+        };
+
+    std::vector<std::string> xpaths = {
+        "//div[@class='header']/span[1]/text()",
+        "//*[@name='content']//button[2]",
+        "//form/child::container[1]/following-sibling::button",
+        "//button[@name='submit' and @enabled='true']",
+        "//ns:form//*[@type='input']",
+        "//bookstore/book[price>35]/title",
+        "//ul/li[position()<3]",
+        "//section[@id='intro']/descendant::p",
+        "//*[local-name()='svg']/*[name()='path']",
+        "/root/*[2]//child::leaf",
+        "//parent::node()/preceding-sibling::sibling"
     };
 
-    for (std::string const& xpath : {
-        "//div[@class='header']/span[1]/text()",
-        "//*[@name='content']//button[2]"
-    }) {
-        std::cout << pydecl(xpath) << '\n';
+    for (auto const& xpath : xpaths) {
+        std::cout << "Processing XPath : " << xpath << "\n";
+        std::cout << pyDecl(xpath) << "\n";
     }
+    return 0;
 }
 ```
 
