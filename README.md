@@ -58,9 +58,7 @@ For GCC/Clang on Linux or macOS, just install `nlohmann-json` from your package 
 #include "hlat.hpp"
 
 int main() {
-    using namespace hlat;
-
-    auto synth = QtLocatorSynthesizer{ parsePath }; // one‑liner
+    auto synth = hlat::QtLocatorSynthesizer<std::vector<hlat::LexicalUnit>(*)(std::string_view)>{ hlat::parsePath }; //< Or custom parser
 
     const std::string xpath =
         "/window[@title='DemoApp']/container[@name='main']/button[2]";
