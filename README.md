@@ -87,7 +87,3 @@ any_QWidget_name_content_button_PushButtonQT = {
     "container": any_QWidget_name_content
 }
 ```
-
-## 📄 License
-
-Released under the MIT License – see LICENSE.
