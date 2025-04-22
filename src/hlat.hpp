@@ -7,11 +7,7 @@
  |      * Heuristic Qt widget classifier
  |      * Advanced path parsing with axes and predicates
  |      * Single-header, dependency-free (except nlohmann/json)
- |
- |  Copyright (c) 2025  SARTORIUS
- |  Contact: alexander.toepfer@sartorius.com
- |
- |  SPDXLicenseIdentifier: MIT
+ |  Contact: https://github.com/alexandertoepfer
  *============================================================================*/
 
 #pragma once
